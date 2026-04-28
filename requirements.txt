@@ -1,0 +1,3 @@
+# frappe-whatsapp-notify dependencies
+# Frappe and ERPNext are installed via bench — not listed here
+twilio>=8.0.0
