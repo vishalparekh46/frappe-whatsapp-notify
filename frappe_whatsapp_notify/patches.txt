@@ -1,0 +1,2 @@
+# Patch entries for frappe_whatsapp_notify
+# Format: app.module.patch_name
