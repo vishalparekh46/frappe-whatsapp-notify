@@ -1,6 +1,6 @@
-# 📲 frappe-whatsapp-notify
+# 📱 frappe-whatsapp-notify
 
-> Send WhatsApp notifications automatically from ERPNext — on Sales Order confirmation, Invoice generation, Payment receipt, and overdue payment reminders.
+> Send WhatsApp notifications automatically from ERPNext – on Sales Order confirmation, Invoice generation, Payment receipt, and overdue payment reminders.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Frappe](https://img.shields.io/badge/Frappe-v14%2B-blue)](https://frappe.io)
@@ -11,11 +11,41 @@
 
 ## ✨ Features
 
-- ✅ **Sales Order confirmation** — auto WhatsApp when order is submitted
-- 🧾 **Invoice notification** — send invoice details on submission
-- 💰 **Payment receipt** — confirm payment via WhatsApp instantly
-- ⚠️ **Overdue reminders** — daily scheduled task for unpaid invoices
+- ✅ **Sales Order confirmation** – auto WhatsApp when order is submitted
+- 🧾 **Invoice notification** – send invoice details on submission
+- 💰 **Payment receipt** – confirm payment via WhatsApp instantly
+- ⚠️ **Overdue reminders** – daily scheduled task for unpaid invoices
 - 🔌 Powered by **Twilio WhatsApp API** (easy to swap for WABA direct)
+
+---
+
+## ⚙️ How It Works
+
+The app hooks into Frappe's document event system. When key business documents are submitted in ERPNext, the corresponding WhatsApp message fires automatically via Twilio.
+
+| DocType | Event | Trigger | Message Sent |
+|---|---|---|---|
+| **Sales Order** | `on_submit` | Order confirmed by user | "Your Sales Order {name} for ₹{amount} has been confirmed." |
+| **Sales Invoice** | `on_submit` | Invoice saved & submitted | "Invoice {name} of ₹{amount} is ready. Due: {due_date}." |
+| **Payment Entry** | `on_submit` | Payment received/recorded | "Payment of ₹{amount} received against {invoice}. Thank you!" |
+| **Scheduler** | `daily` | Runs every night at midnight | Sends overdue reminders for all unpaid invoices past due date |
+
+### Doc Event Flow
+
+```
+ERPNext Submit → hooks.py doc_events → api/whatsapp.py → Twilio API → Customer WhatsApp
+```
+
+### Scheduler Flow
+
+```
+Frappe Scheduler (daily) → hooks.py scheduler_events → api/scheduler.py
+  → frappe.get_all(Sales Invoice, overdue) → send_whatsapp_message() per invoice
+```
+
+### Phone Number Handling
+
+All phone numbers are normalised to E.164 format (+91XXXXXXXXXX) by `utils.normalise_phone()` before sending. Invalid or missing numbers are logged and skipped gracefully.
 
 ---
 
@@ -45,64 +75,30 @@ bench --site your-site.local migrate
 
 ---
 
-## 🔑 Configuration
+## 🔧 Configuration
 
-1. Go to **ERPNext → Settings → WhatsApp Settings**
-2. Fill in your **Twilio Account SID**, **Auth Token**, and **From Number**
-3. Enable the setting and save
-
-> ⚠️ Auth Token is stored encrypted using Frappe's built-in password field.
-
----
-
-## 🛠️ How It Works
-
-The app hooks into ERPNext document events via `hooks.py`:
-
-| Event | Trigger |
-|---|---|
-| Sales Order submitted | WhatsApp order confirmation to customer |
-| Sales Invoice submitted | Invoice amount & due date notification |
-| Payment Entry submitted | Payment receipt confirmation |
-| Daily scheduler | Overdue invoice reminders |
+1. Go to **WhatsApp Settings** in ERPNext
+2. Enable the app (toggle **Enabled**)
+3. Enter your Twilio **Account SID** and **Auth Token**
+4. Enter your Twilio WhatsApp **From Number** (e.g. `whatsapp:+14155238886`)
+5. Save
 
 ---
 
-## 📁 Project Structure
+## 🧪 Running Tests
 
-```
-frappe_whatsapp_notify/
-├── api/
-│   ├── whatsapp.py       # Core message sending + doc event handlers
-│   └── scheduler.py      # Daily overdue reminder task
-├── doctype/              # WhatsApp Settings DocType
-├── hooks.py              # Frappe hooks — doc events & scheduler
-└── __init__.py
+```bash
+bench --site your-site.local run-tests --app frappe_whatsapp_notify
 ```
 
 ---
 
 ## 🤝 Contributing
 
-Pull requests are welcome! Please:
-
-1. Fork the repo
-2. Create a feature branch (`git checkout -b feature/my-feature`)
-3. Commit with clear messages (`feat: add template support`)
-4. Open a PR against `develop`
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on branch naming, commit format, and how to add new notification triggers.
 
 ---
 
 ## 📄 License
 
 MIT — see [LICENSE](LICENSE)
-
----
-
-## 👤 Author
-
-**Vishal Parekh** — ERPNext & Frappe Developer at [Aavatto](https://aavatto.com)
-
-- GitHub: [@vishalparekh46](https://github.com/vishalparekh46)
-- LinkedIn: [vishalparekh46](https://linkedin.com/in/vishalparekh46)
-- Forum: [discuss.frappe.io](https://discuss.frappe.io)
