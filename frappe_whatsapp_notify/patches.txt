@@ -1,2 +1,8 @@
 # Patch entries for frappe_whatsapp_notify
-# Format: app.module.patch_name
+# Format: frappe_whatsapp_notify.patches.vX_Y.patch_module_name
+
+# v1.0 patches
+# (none)
+
+# v1.1 patches
+frappe_whatsapp_notify.patches.v1_1.add_whatsapp_log_doctype
